@@ -48,6 +48,10 @@ let availabilityMacros: [SwiftSetting] = versionNumbers.flatMap { version in
 
 var packageDependencies = [PackageDescription.Package.Dependency]()
 var targetDependencies = [PackageDescription.Target.Dependency]()
+var stateMachineTargetDependencies: [PackageDescription.Target.Dependency] = [
+    .product(name: "BinaryParsing", package: "swift-binary-parsing"),
+    .product(name: "BinarySerialization", package: "swift-binary-parsing"),
+]
 
 var settings: [SwiftSetting]? = [
     // Add build settings here
@@ -57,30 +61,42 @@ var settings: [SwiftSetting]? = [
 #if os(Linux)
 packageDependencies = [
     .package(url: "https://github.com/apple/swift-log.git", from: "1.0.0"),
-    .package(url: "https://github.com/apple/swift-crypto.git", from: "5.0.0-beta.1"),
+    .package(url: "https://github.com/apple/swift-crypto.git", "3.6.1" ..< "4.0.0"),
+    .package(path: "../swift-binary-parsing"),
 ]
 targetDependencies = [
     .product(name: "Logging", package: "swift-log"),
     .product(name: "Crypto", package: "swift-crypto"),
     .product(name: "CryptoExtras", package: "swift-crypto"),
 ]
+stateMachineTargetDependencies += [
+    .product(name: "Crypto", package: "swift-crypto"),
+    .product(name: "_CryptoExtras", package: "swift-crypto"),
+]
 #else
 packageDependencies = [
-    .package(url: "https://github.com/apple/swift-crypto.git", from: "5.0.0-beta.1")
+    .package(url: "https://github.com/apple/swift-crypto.git", from: "5.0.0-beta.1"),
+    .package(path: "../swift-binary-parsing"),
 ]
 targetDependencies = [
     .product(name: "Crypto", package: "swift-crypto"),
     .product(name: "CryptoExtras", package: "swift-crypto"),
+]
+stateMachineTargetDependencies += [
+    .product(name: "Crypto", package: "swift-crypto"),
+    .product(name: "_CryptoExtras", package: "swift-crypto"),
 ]
 #endif
 
 let package = Package(
     name: "swift-tls",
     products: [
-        // Products define the executables and libraries a package produces, making them visible to other packages.
         .library(
             name: "SwiftTLS",
             targets: ["SwiftTLS"]),
+        .library(
+            name: "SwiftTLSStateMachine",
+            targets: ["SwiftTLSStateMachine"]),
     ],
     dependencies: packageDependencies,
     targets: [
@@ -95,6 +111,28 @@ let package = Package(
             name: "SwiftTLSTests",
             dependencies: ["SwiftTLS"],
             swiftSettings: availabilityMacros + (settings ?? [])
+        ),
+        .target(
+            name: "SwiftTLSStateMachine",
+            dependencies: stateMachineTargetDependencies,
+            swiftSettings: availabilityMacros + [
+                .enableExperimentalFeature("Lifetimes"),
+                .enableUpcomingFeature("InternalImportsByDefault"),
+            ]
+        ),
+        .testTarget(
+            name: "SwiftTLSStateMachineTests",
+            dependencies: [
+                "SwiftTLSStateMachine",
+                .product(name: "BinaryParsing", package: "swift-binary-parsing"),
+                .product(name: "BinarySerialization", package: "swift-binary-parsing"),
+                .product(name: "Crypto", package: "swift-crypto"),
+            ],
+            swiftSettings: availabilityMacros + [
+                .enableExperimentalFeature("Lifetimes"),
+                .enableUpcomingFeature("MemberImportVisibility"),
+                .enableUpcomingFeature("InternalImportsByDefault"),
+            ]
         ),
     ]
 )
