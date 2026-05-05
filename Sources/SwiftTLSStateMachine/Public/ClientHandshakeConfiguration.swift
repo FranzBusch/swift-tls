@@ -40,9 +40,9 @@ public struct ClientHandshakeConfiguration: Sendable {
         alpnProtocols: [String] = []
     ) {
         self.cipherSuites = [
-            .TLS_AES_256_GCM_SHA384,
             .TLS_AES_128_GCM_SHA256,
             .TLS_CHACHA20_POLY1305_SHA256,
+            // TODO: TLS_AES_256_GCM_SHA384 requires SHA384 key schedule + transcript hash
         ]
         self.supportedGroups = [.x25519, .secp256]
         self.signatureAlgorithms = [

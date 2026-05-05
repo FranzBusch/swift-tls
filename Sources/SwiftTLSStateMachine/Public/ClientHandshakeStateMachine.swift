@@ -126,7 +126,7 @@ public struct ClientHandshakeStateMachine: ~Copyable {
 
     public enum ReceiveAction: ~Copyable {
         case `continue`
-        case complete(TLSConnectionStateMachine)
+        case complete(TLSApplicationStateMachines)
         case error(HandshakeError)
     }
 
@@ -273,21 +273,24 @@ public struct ClientHandshakeStateMachine: ~Copyable {
                 return .error(.unexpectedMessage)
             }
 
-            let connectionSM = TLSConnectionStateMachine(
-                readProtection: TLSRecordProtection(
-                    trafficSecret: appSecrets.serverApplicationTrafficSecret,
-                    cipherSuite: waitingFinished.negotiatedCipherSuite
+            let appState = TLSApplicationStateMachines(
+                read: TLSReadStateMachine(
+                    protection: TLSRecordProtection(
+                        trafficSecret: appSecrets.serverApplicationTrafficSecret,
+                        cipherSuite: waitingFinished.negotiatedCipherSuite
+                    )
                 ),
-                writeProtection: TLSRecordProtection(
-                    trafficSecret: appSecrets.clientApplicationTrafficSecret,
-                    cipherSuite: waitingFinished.negotiatedCipherSuite
+                write: TLSWriteStateMachine(
+                    protection: TLSRecordProtection(
+                        trafficSecret: appSecrets.clientApplicationTrafficSecret,
+                        cipherSuite: waitingFinished.negotiatedCipherSuite
+                    )
                 ),
-                cipherSuite: waitingFinished.negotiatedCipherSuite,
                 negotiatedALPN: waitingFinished.negotiatedALPN
             )
 
             self = Self(state: .connected)
-            return .complete(connectionSM)
+            return .complete(appState)
 
         case .connected:
             self = Self(state: .error)

@@ -39,7 +39,7 @@ public struct ServerHandshakeStateMachine: ~Copyable {
 
     public enum ReceiveAction: ~Copyable {
         case `continue`
-        case complete(TLSConnectionStateMachine)
+        case complete(TLSApplicationStateMachines)
         case error(HandshakeError)
     }
 
@@ -96,15 +96,18 @@ public struct ServerHandshakeStateMachine: ~Copyable {
             }
             precondition(parserSpan.isEmpty)
 
-            let connectionSM = TLSConnectionStateMachine(
-                readProtection: waitingClientFinished.clientAppDecrypt,
-                writeProtection: waitingClientFinished.serverAppEncrypt,
-                cipherSuite: waitingClientFinished.negotiatedCipherSuite,
+            let appState = TLSApplicationStateMachines(
+                read: TLSReadStateMachine(
+                    protection: waitingClientFinished.clientAppDecrypt
+                ),
+                write: TLSWriteStateMachine(
+                    protection: waitingClientFinished.serverAppEncrypt
+                ),
                 negotiatedALPN: waitingClientFinished.negotiatedALPN
             )
 
             self = Self(state: .connected)
-            return .complete(connectionSM)
+            return .complete(appState)
 
         case .connected:
             self = Self(state: .error)
@@ -251,8 +254,8 @@ extension ServerHandshakeStateMachine {
 
             // 5. Serialize encrypted EncryptedExtensions
             var eeExtensions: [TLSExtension] = []
-            if !idle.configuration.alpnProtocols.isEmpty {
-                eeExtensions.append(.alpn(idle.configuration.alpnProtocols))
+            if let selectedALPN = alpn {
+                eeExtensions.append(.alpn([selectedALPN]))
             }
             let eeMessage = HandshakeMessage.encryptedExtensions(
                 EncryptedExtensions(extensions: eeExtensions)

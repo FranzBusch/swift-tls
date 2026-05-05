@@ -295,10 +295,10 @@ struct ServerHandshakeStateMachineTests {
             outputBuf.withUnsafeMutableBufferPointer { buf in
                 var output = OutputSpan<UInt8>(buffer: buf, initializedCount: 0)
                 let action = sm.receive(&view, output: &output)
-                guard case .complete(let connectionSM) = action else {
+                guard case .complete(var appState) = action else {
                     Issue.record("Expected .complete"); return
                 }
-                assert(connectionSM.isActive())
+                _ = appState.takeReadStateMachine()
             }
         }
 
@@ -465,10 +465,10 @@ struct ServerHandshakeStateMachineTests {
             outputBuf.withUnsafeMutableBufferPointer { buf in
                 var output = OutputSpan<UInt8>(buffer: buf, initializedCount: 0)
                 let action = sm.receive(&view, output: &output)
-                guard case .complete(let connectionSM) = action else {
+                guard case .complete(var appState) = action else {
                     Issue.record("Expected .complete after client Finished"); return
                 }
-                assert(connectionSM.isActive())
+                _ = appState.takeWriteStateMachine()
             }
         }
 
