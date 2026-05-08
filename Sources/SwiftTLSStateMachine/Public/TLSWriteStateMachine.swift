@@ -29,22 +29,18 @@ public struct TLSWriteStateMachine: ~Copyable {
         self.closed = false
     }
 
-    /// Encrypts application data and writes the TLS record into the output.
     public mutating func encryptApplicationData(
-        _ plaintext: borrowing Span<UInt8>,
-        output: inout OutputSpan<UInt8>
+        buffer: inout MutableSpan<UInt8>
     ) -> EncryptAction {
         guard !closed else {
             return .error(.connectionClosed)
         }
 
         do {
-            try Self.writeEncryptedRecord(
-                plaintext: plaintext,
+            _ = try protection.encrypt2(
+                buffer: &buffer,
                 contentType: .applicationData,
-                protection: protection,
-                sequenceNumber: sequenceNumber,
-                output: &output
+                sequenceNumber: sequenceNumber
             )
             sequenceNumber += 1
             return .ok

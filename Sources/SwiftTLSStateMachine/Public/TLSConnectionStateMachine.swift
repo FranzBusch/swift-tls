@@ -91,22 +91,22 @@ public struct TLSConnectionStateMachine: ~Copyable {
     // MARK: - encryptApplicationData
 
     /// Encrypts application data and writes the TLS record into the output.
-    public mutating func encryptApplicationData(
-        _ plaintext: borrowing Span<UInt8>,
-        output: inout OutputSpan<UInt8>
-    ) -> EncryptAction {
-        guard var write = _write.take() else {
-            return .error(.connectionClosed)
-        }
-        let action = write.encryptApplicationData(plaintext, output: &output)
-        _write = consume write
-        switch action {
-        case .ok:
-            return .ok
-        case .error(let e):
-            return .error(e)
-        }
-    }
+//    public mutating func encryptApplicationData(
+//        _ plaintext: borrowing Span<UInt8>,
+//        output: inout OutputSpan<UInt8>
+//    ) -> EncryptAction {
+//        guard var write = _write.take() else {
+//            return .error(.connectionClosed)
+//        }
+//        let action = write.encryptApplicationData(plaintext, output: &output)
+//        _write = consume write
+//        switch action {
+//        case .ok:
+//            return .ok
+//        case .error(let e):
+//            return .error(e)
+//        }
+//    }
 
     public enum EncryptAction: ~Copyable {
         case ok

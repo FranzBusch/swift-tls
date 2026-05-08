@@ -305,8 +305,8 @@ public struct ClientHandshakeStateMachine: ~Copyable {
 
 // MARK: - State
 
-extension ClientHandshakeStateMachine {
-    private enum State: ~Copyable {
+public extension ClientHandshakeStateMachine {
+    enum State: ~Copyable {
         case idle(IdleState)
         case waitingServerHello(WaitingServerHelloState)
         case waitingEncryptedExtensions(WaitingEncryptedExtensionsState)
@@ -317,16 +317,16 @@ extension ClientHandshakeStateMachine {
         case error
     }
 
-    private struct IdleState: ~Copyable {
+    struct IdleState: ~Copyable {
         let configuration: ClientHandshakeConfiguration
     }
 
-    private struct WaitingServerHelloState: ~Copyable {
+    struct WaitingServerHelloState: ~Copyable {
         var privateKey: P256.KeyAgreement.PrivateKey
         var transcript: SHA256
     }
 
-    private struct WaitingEncryptedExtensionsState: ~Copyable {
+    struct WaitingEncryptedExtensionsState: ~Copyable {
         let negotiatedCipherSuite: CipherSuite
         var transcript: SHA256
         var keySchedule: TLSKeySchedule<SHA256>
@@ -395,7 +395,7 @@ extension ClientHandshakeStateMachine {
         }
     }
 
-    private struct WaitingServerCertificateState: ~Copyable {
+    struct WaitingServerCertificateState: ~Copyable {
         let negotiatedCipherSuite: CipherSuite
         let negotiatedALPN: String?
         var transcript: SHA256
@@ -442,7 +442,7 @@ extension ClientHandshakeStateMachine {
         }
     }
 
-    private struct WaitingCertificateVerifyState: ~Copyable {
+    struct WaitingCertificateVerifyState: ~Copyable {
         let negotiatedCipherSuite: CipherSuite
         let negotiatedALPN: String?
         var transcript: SHA256
@@ -489,7 +489,7 @@ extension ClientHandshakeStateMachine {
         }
     }
 
-    private struct WaitingFinishedState: ~Copyable {
+    struct WaitingFinishedState: ~Copyable {
         let negotiatedCipherSuite: CipherSuite
         let negotiatedALPN: String?
         var transcript: SHA256

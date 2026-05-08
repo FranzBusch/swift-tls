@@ -18,7 +18,7 @@ public import Crypto
 ///
 /// Implements the key schedule defined in RFC 8446 Section 7.1.
 /// Advances through four phases: early, handshake, master, and complete.
-struct TLSKeySchedule<HF: HashFunction> {
+public struct TLSKeySchedule<HF: HashFunction> {
     private var state: State
 
     /// Creates a key schedule starting from the early secret phase.
@@ -53,7 +53,7 @@ struct TLSKeySchedule<HF: HashFunction> {
     ///   - sharedSecret: The ECDHE shared secret from key exchange.
     ///   - transcriptHash: The transcript hash up to and including ServerHello.
     /// - Returns: The client and server handshake traffic secrets.
-    public mutating func deriveHandshakeSecrets(
+    mutating func deriveHandshakeSecrets(
         sharedSecret: SharedSecret,
         transcriptHash: HF.Digest
     ) -> HandshakeSecrets {
@@ -95,7 +95,7 @@ struct TLSKeySchedule<HF: HashFunction> {
     /// - Parameter transcriptHash: The transcript hash up to and including
     ///   server Finished.
     /// - Returns: The client and server application traffic secrets.
-    public mutating func deriveMasterSecrets(
+    mutating func deriveMasterSecrets(
         transcriptHash: HF.Digest
     ) -> ApplicationSecrets {
         guard case .handshakeSecret(let s) = state else {

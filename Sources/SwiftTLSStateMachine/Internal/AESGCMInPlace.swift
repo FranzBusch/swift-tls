@@ -15,9 +15,6 @@
 import Crypto
 
 // Emulates the in-place AES-GCM APIs coming in Swift Crypto (macOS 27+).
-// Uses MutableSpan<UInt8> instead of MutableRawSpan/OutputRawSpan since
-// those types aren't available yet. When the real APIs land, switch to
-// AES.GCM.seal(inPlace:...) / AES.GCM.open(inPlace:...) with RawSpan types.
 
 extension AES.GCM {
     /// Encrypts `message` in-place and writes the authentication tag

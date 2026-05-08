@@ -19,7 +19,7 @@ public import Crypto
 /// Both encrypt and decrypt operate on ``EncryptedTLSRecordView`` /
 /// ``DecryptedTLSRecordView`` with in-place semantics. The fragment
 /// layout is `[ciphertext | tag(16)]`.
-struct TLSRecordProtection {
+public struct TLSRecordProtection {
     let key: SymmetricKey
     let iv: [UInt8]
 
@@ -128,23 +128,69 @@ struct TLSRecordProtection {
             fragmentLength: ciphertextLength + tagSize
         )
 
-        // Encrypt ciphertext region in-place, tag into temp array, copy tag back
-        var ciphertextSlice = buffer._mutatingExtracting(0..<ciphertextLength)
-        var tagBytes = [UInt8](repeating: 0, count: tagSize)
-
-        try tagBytes.withUnsafeMutableBufferPointer { tagBuf in
-            var tagSpan = MutableSpan<UInt8>(_unsafeStart: tagBuf.baseAddress!, count: tagBuf.count)
+        try buffer.withUnsafeMutableBufferPointer { buffer in
+            // We have to construct these spans manually otherwise we will get
+            // an overlapping mutating access which breaks the law of exclusivity
+            // This code is safe nevertheless
+            var ciphertextSlice = MutableSpan<UInt8>(
+                _unsafeStart: buffer.baseAddress!,
+                count: ciphertextLength
+            )
+            var tagSlice = MutableSpan<UInt8>(
+                _unsafeStart: buffer.baseAddress! + ciphertextLength,
+                count: tagSize
+            )
             try AES.GCM.sealEmulatingInPlace(
                 message: &ciphertextSlice,
                 using: key,
                 nonce: nonce,
                 authenticating: aad.span,
-                tag: &tagSpan
+                tag: &tagSlice
             )
         }
 
-        for i in 0..<tagSize {
-            buffer[ciphertextLength + i] = tagBytes[i]
+        return EncryptedTLSRecordView(
+            contentType: .applicationData,
+            version: .tlsv12,
+            fragment: buffer._mutatingExtracting(0..<buffer.count)
+        )
+    }
+    @_lifetime(&buffer)
+    func encrypt2(
+        buffer: inout MutableSpan<UInt8>,
+        contentType: ContentType,
+        sequenceNumber: UInt64
+    ) throws -> EncryptedTLSRecordView {
+        let tagSize = 16
+        let ciphertextLength = buffer.count - tagSize
+        precondition(buffer.count == ciphertextLength + tagSize)
+
+        let nonce = try AES.GCM.Nonce(data: Self.buildNonce(iv: iv, sequenceNumber: sequenceNumber))
+        let aad = Self.buildAAD(
+            contentType: .applicationData,
+            version: .tlsv12,
+            fragmentLength: ciphertextLength + tagSize
+        )
+
+        try buffer.withUnsafeMutableBufferPointer { buffer in
+            // We have to construct these spans manually otherwise we will get
+            // an overlapping mutating access which breaks the law of exclusivity
+            // This code is safe nevertheless
+            var ciphertextSlice = MutableSpan<UInt8>(
+                _unsafeStart: buffer.baseAddress!,
+                count: ciphertextLength
+            )
+            var tagSlice = MutableSpan<UInt8>(
+                _unsafeStart: buffer.baseAddress! + ciphertextLength,
+                count: tagSize
+            )
+            try AES.GCM.sealEmulatingInPlace(
+                message: &ciphertextSlice,
+                using: key,
+                nonce: nonce,
+                authenticating: aad.span,
+                tag: &tagSlice
+            )
         }
 
         return EncryptedTLSRecordView(

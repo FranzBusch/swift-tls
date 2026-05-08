@@ -122,19 +122,19 @@ public struct ServerHandshakeStateMachine: ~Copyable {
 
 // MARK: - State
 
-extension ServerHandshakeStateMachine {
-    private enum State: ~Copyable {
+public extension ServerHandshakeStateMachine {
+    enum State: ~Copyable {
         case idle(IdleState)
         case waitingClientFinished(WaitingClientFinishedState)
         case connected
         case error
     }
 
-    private struct IdleState: ~Copyable {
+    struct IdleState: ~Copyable {
         let configuration: ServerHandshakeConfiguration
     }
 
-    private struct WaitingClientFinishedState: ~Copyable {
+    struct WaitingClientFinishedState: ~Copyable {
         let negotiatedCipherSuite: CipherSuite
         let negotiatedALPN: String?
         var clientDecrypt: TLSRecordProtection
