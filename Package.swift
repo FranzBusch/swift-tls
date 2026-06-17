@@ -90,7 +90,7 @@ stateMachineTargetDependencies += [
 
 let package = Package(
     name: "swift-tls",
-    platforms: [.macOS("13.0"), .iOS("16.0"), .tvOS("16.0"), .watchOS("9.0")],
+    platforms: [.macOS("26.0"), .iOS("26.0"), .tvOS("26.0"), .watchOS("26.0"), .visionOS("26.0")],
     products: [
         .library(
             name: "SwiftTLSStateMachine",
