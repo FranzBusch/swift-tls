@@ -61,7 +61,7 @@ var settings: [SwiftSetting]? = [
 #if os(Linux)
 packageDependencies = [
     .package(url: "https://github.com/apple/swift-log.git", from: "1.0.0"),
-    .package(url: "https://github.com/apple/swift-crypto.git", from: "5.0.0-beta.1"),
+    .package(url: "https://github.com/apple/swift-crypto.git", exact: "5.0.0-beta.1"),
     .package(url: "https://github.com/FranzBusch/swift-binary-parsing.git", branch: "fb-networking"),
 ]
 targetDependencies = [
@@ -75,7 +75,7 @@ stateMachineTargetDependencies += [
 ]
 #else
 packageDependencies = [
-    .package(url: "https://github.com/apple/swift-crypto.git", from: "5.0.0-beta.1"),
+    .package(url: "https://github.com/apple/swift-crypto.git", exact: "5.0.0-beta.1"),
     .package(url: "https://github.com/FranzBusch/swift-binary-parsing.git", branch: "fb-networking"),
 ]
 targetDependencies = [
