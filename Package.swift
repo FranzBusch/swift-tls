@@ -76,7 +76,7 @@ stateMachineTargetDependencies += [
 #else
 packageDependencies = [
     .package(url: "https://github.com/apple/swift-crypto.git", from: "5.0.0-beta.1"),
-    .package(path: "../swift-binary-parsing"),
+    .package(url: "https://github.com/FranzBusch/swift-binary-parsing.git", branch: "fb-networking"),
 ]
 targetDependencies = [
     .product(name: "Crypto", package: "swift-crypto"),
