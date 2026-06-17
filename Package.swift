@@ -92,9 +92,6 @@ let package = Package(
     name: "swift-tls",
     products: [
         .library(
-            name: "SwiftTLS",
-            targets: ["SwiftTLS"]),
-        .library(
             name: "SwiftTLSStateMachine",
             targets: ["SwiftTLSStateMachine"]),
     ],
@@ -102,16 +99,6 @@ let package = Package(
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.
-        .target(
-            name: "SwiftTLS",
-            dependencies: targetDependencies,
-            swiftSettings: availabilityMacros + (settings ?? [])
-        ),
-        .testTarget(
-            name: "SwiftTLSTests",
-            dependencies: ["SwiftTLS"],
-            swiftSettings: availabilityMacros + (settings ?? [])
-        ),
         .target(
             name: "SwiftTLSStateMachine",
             dependencies: stateMachineTargetDependencies,
