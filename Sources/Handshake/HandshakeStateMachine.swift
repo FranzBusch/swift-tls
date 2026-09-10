@@ -603,6 +603,10 @@ struct HandshakeStateMachine {
         }
     }
 
+    var hasBufferedHandshakeBytes: Bool {
+        self.parser.bytesToParse > 0
+    }
+
     var clientRandom: ByteBuffer? {
         var randomBytes = ByteBuffer()
         randomBytes.writeRandom(self.random)

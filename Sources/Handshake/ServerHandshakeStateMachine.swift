@@ -477,6 +477,9 @@ struct ServerHandshakeStateMachine {
         }
     }
 
+    var hasBufferedHandshakeBytes: Bool {
+        self.parser.bytesToParse > 0
+    }
 }
 
 // Availability due to `RawSpan`
