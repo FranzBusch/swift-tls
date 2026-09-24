@@ -64,9 +64,7 @@ extension InlineArray where Element == UInt8 {
     init(copying bytes: RawSpan) {
         precondition(count == bytes.byteCount)
         self.init { outputSpan in
-            for i in 0..<count {
-                outputSpan.append(bytes.unsafeLoad(fromByteOffset: i, as: UInt8.self))
-            }
+            outputSpan.append(contentsOf: bytes)
         }
     }
 }
@@ -99,9 +97,19 @@ extension InlineArray where Element: Equatable {
 @available(SwiftTLS 0.1.0, *)
 extension OutputRawSpan {
     /// Appends the contents of the given raw span to this output span.
+    ///
+    /// The standard library has no bulk append on `OutputRawSpan`, so this
+    /// reaches for a pointer to get a single `memcpy`. We could append byte-by-byte
+    /// with a manual for loop which gets vectorized in release builds; however,
+    /// in debug builds it leads to orders of magnitude slower performance.
     mutating func append(contentsOf bytes: RawSpan) {
-        for i in 0..<bytes.byteCount {
-            append(bytes.unsafeLoad(fromByteOffset: i, as: UInt8.self))
+        guard !bytes.isEmpty else { return }
+        withUnsafeMutableBytes { buffer, initializedCount in
+            bytes.withUnsafeBytes { input in
+                UnsafeMutableRawBufferPointer(rebasing: buffer[initializedCount...])
+                    .copyMemory(from: input)
+            }
+            initializedCount += bytes.byteCount
         }
     }
 }
@@ -110,9 +118,18 @@ extension OutputRawSpan {
 @available(SwiftTLS 0.1.0, *)
 extension OutputSpan where Element == UInt8 {
     /// Appends the contents of the given raw span to this output span.
+    ///
+    /// See `OutputRawSpan.append(contentsOf:)` for why this copies through a
+    /// pointer rather than appending byte by byte.
     mutating func append(contentsOf bytes: RawSpan) {
-        for i in 0..<bytes.byteCount {
-            append(bytes.unsafeLoad(fromByteOffset: i, as: UInt8.self))
+        guard !bytes.isEmpty else { return }
+        withUnsafeMutableBufferPointer { buffer, initializedCount in
+            bytes.withUnsafeBytes { input in
+                UnsafeMutableRawBufferPointer(
+                    rebasing: UnsafeMutableRawBufferPointer(buffer)[initializedCount...]
+                ).copyMemory(from: input)
+            }
+            initializedCount += bytes.byteCount
         }
     }
 }
