@@ -218,7 +218,7 @@ struct TLSInnerPlaintext: ~Escapable {
     func protect(writeKey: SymmetricKey, nonce: Nonce, additionalData: RawSpan) throws(TLSError) -> [UInt8] {
         // Allocate storage for the ciphertext + content + padding + tag.
         let tagSize = TLSRecordProtector.aesTagLengthBytes
-        var storage = [UInt8](capacity: length + tagSize) { output in
+        var storage = [UInt8](capacity: self.length + tagSize) { output in
             output.append(contentsOf: self.content)
             output.append(self.contentType.rawValue)
             output.append(repeating: 0, count: self.paddingLength + tagSize)
@@ -227,7 +227,7 @@ struct TLSInnerPlaintext: ~Escapable {
         // Encrypt in place, writing the tag into the space reserved for it at
         // the end of the same buffer.
         try TLSError.wrappingCryptoError {
-            try storage.withUnsafeMutableOutputSplit(at: length) { message, tag in
+            try storage.withUnsafeMutableOutputSplit(at: self.length) { message, tag in
                 try AES.GCM.seal(
                     inPlace: &message,
                     using: writeKey,

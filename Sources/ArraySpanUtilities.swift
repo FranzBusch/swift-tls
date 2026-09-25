@@ -29,8 +29,8 @@ extension Array where Element == UInt8 {
     /// `OutputRawSpan` to be written into.
     ///
     /// Two disjoint mutable views into one allocation can't be expressed with
-    /// the safe span APIs, so this is deliberately the only place in the record
-    /// layer that reaches for pointers.
+    /// the safe span APIs, so this helper splits the storage into a prefix and
+    /// a suffix through pointers.
     ///
     /// The suffix is already-initialized storage, but `OutputRawSpan` can only
     /// model it as empty free capacity, so it is presented with an initialized
@@ -103,8 +103,12 @@ extension OutputRawSpan {
     /// with a manual for loop which gets vectorized in release builds; however,
     /// in debug builds it leads to orders of magnitude slower performance.
     mutating func append(contentsOf bytes: RawSpan) {
+        precondition(
+            bytes.byteCount <= self.freeCapacity,
+            "append(contentsOf:) would write \(bytes.byteCount) bytes into \(self.freeCapacity) bytes of free capacity"
+        )
         guard !bytes.isEmpty else { return }
-        withUnsafeMutableBytes { buffer, initializedCount in
+        self.withUnsafeMutableBytes { buffer, initializedCount in
             bytes.withUnsafeBytes { input in
                 UnsafeMutableRawBufferPointer(rebasing: buffer[initializedCount...])
                     .copyMemory(from: input)
@@ -122,8 +126,12 @@ extension OutputSpan where Element == UInt8 {
     /// See `OutputRawSpan.append(contentsOf:)` for why this copies through a
     /// pointer rather than appending byte by byte.
     mutating func append(contentsOf bytes: RawSpan) {
+        precondition(
+            bytes.byteCount <= self.freeCapacity,
+            "append(contentsOf:) would write \(bytes.byteCount) bytes into \(self.freeCapacity) bytes of free capacity"
+        )
         guard !bytes.isEmpty else { return }
-        withUnsafeMutableBufferPointer { buffer, initializedCount in
+        self.withUnsafeMutableBufferPointer { buffer, initializedCount in
             bytes.withUnsafeBytes { input in
                 UnsafeMutableRawBufferPointer(
                     rebasing: UnsafeMutableRawBufferPointer(buffer)[initializedCount...]
