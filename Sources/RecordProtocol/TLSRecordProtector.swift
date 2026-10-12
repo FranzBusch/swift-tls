@@ -36,6 +36,10 @@ import Logging
 private let logger = Logger(label: "com.apple.security.swifttls.RecordLayer")
 #endif
 
+/// Stack storage for an AEAD authentication tag.
+@available(SwiftTLS 0.1.0, *)
+typealias AEADTag = [16 of UInt8]
+
 // Availability due to `RawSpan`
 @available(SwiftTLS 0.1.0, *)
 struct Nonce {

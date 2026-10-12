@@ -127,7 +127,7 @@ struct TLSCiphertext: TLSRecordProtocol, Hashable {
         // place. The tag is copied into stack storage so that it doesn't
         // overlap the buffer being decrypted.
         var message = [UInt8](copying: encryptedRecord.extracting(0..<ciphertextLength))
-        let tag = [16 of UInt8](copying: encryptedRecord.extracting(ciphertextLength..<encryptedRecord.byteCount))
+        let tag = AEADTag(copying: encryptedRecord.extracting(ciphertextLength..<encryptedRecord.byteCount))
 
         do {
             try TLSError.wrappingCryptoError { () throws(CryptoKitMetaError) in
